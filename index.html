@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=
+    , initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.1.3/pixi.min.js"></script>
+    <link href="styles.css" rel="stylesheet">
+
+    <script>
+        let app,
+            mountainBg, mountainForegroundTrees, mountainFar, mountainClose, mountainTrees,
+            mountainX = 0, mountainSpeed = 1, player, enemy, speed = 6, keys = {}, rocks = [], heightPlus = -150, bullets = [], meters = 10
+        var stage = new PIXI.Container();
+
+        window.onload = function () {
+            app = new PIXI.Application({
+                width: 800,
+                height: 600,
+            })
+
+            document.querySelector("#gameDiv").appendChild(app.view)
+
+            player = new PIXI.Sprite.from("images/rocketship.png")
+            player.anchor.set(0.1)
+            player.x = 16
+            player.y = app.view.height / 2
+
+            enemy = new PIXI.Sprite.from("images/enemy.png")
+            enemy.anchor.set(0.1)
+            enemy.x = app.view.width + 10;
+            enemy.y = (app.view.height / Math.floor(Math.random() * 6) + 1);
+
+            for (let i = 0; i < 3; i++) {
+                rock = new PIXI.Sprite.from("images/rock.png")
+                rock.anchor.set(0.1)
+                rock.x = app.view.width + 10;
+                rock.y = (app.view.height / Math.floor(Math.random() * 6) + 1) + heightPlus
+                rocks.push(rock)
+                heightPlus += 70
+            }
+            app.loader.baseUrl = "assets"
+            app.loader.add('mountainBg', 'parallax_mountain_pack/layers/parallax-mountain-bg.png')
+                .add('mountainForegroundTrees', 'parallax_mountain_pack/layers/parallax-mountain-foreground-trees.png')
+                .add('mountainFar', 'parallax_mountain_pack/layers/parallax-mountain-montain-far.png')
+                .add('mountainClose', 'parallax_mountain_pack/layers/parallax-mountain-mountains.png')
+                .add('mountainTrees', 'parallax_mountain_pack/layers/parallax-mountain-trees.png')
+
+            app.loader.onComplete.add(initLevel)
+            app.loader.load()
+
+            window.addEventListener('keyup', KeyUp)
+            window.addEventListener('keydown', KeyDown)
+            setFireBulletInterval()
+        }
+
+        function gameLoop(delta) {
+            updateBg()
+            updateBullets()
+            enemy.x -= speed
+            rocks[0].x -= speed * 1.5
+            rocks[1].x -= speed * 2.5
+            rocks[2].x -= speed * 3
+
+            if (enemy.x < -60) {
+                enemy.x = enemy.x = app.view.width + 10;
+                enemy.y = (app.view.height / Math.floor(Math.random() * 6) + 1) - 100 + Math.floor(Math.random() * 31) + 50
+            }
+            if (rocks[0].x < -60) {
+                rocks[0].x = rocks[0].x = app.view.width + 10;
+                rocks[0].y = (app.view.height / Math.floor(Math.random() * 6) + 1) - 100 + Math.floor(Math.random() * 31) + 50
+            }
+            if (rocks[1].x < -60) {
+                rocks[1].x = rocks[1].x = app.view.width + 10;
+                rocks[1].y = (app.view.height / Math.floor(Math.random() * 6) + 1) - 100 + Math.floor(Math.random() * 31) + 50
+            }
+            if (rocks[2].x < -60) {
+                rocks[2].x = rocks[2].x = app.view.width + 10;
+                rocks[2].y = (app.view.height / Math.floor(Math.random() * 6) + 1) - 100 + Math.floor(Math.random() * 31) + 50
+            }
+
+            for (let i = 0; i < bullets.length; i++) {
+                if (intersect(player, bullets[i])) location.reload();
+            }
+
+            if (intersect(player, enemy) || intersect(player, rocks[1]) ||
+                intersect(player, rocks[0]) || intersect(player, rocks[2])) location.reload();
+
+            else {
+                if (keys['38']) player.y -= 5
+                if (keys['40']) player.y += 5
+                if (keys['39']) player.x += 5
+                if (keys['37']) player.x -= 5
+            }
+        }
+
+        function KeyUp(e) {
+            keys[e.keyCode] = false;
+        }
+
+        function KeyDown(e) {
+            keys[e.keyCode] = true;
+        }
+
+        function initLevel() {
+            mountainBg = createBg(app.loader.resources['mountainBg'].texture)
+            mountainForegroundTrees = createBg(app.loader.resources['mountainForegroundTrees'].texture)
+            mountainFar = createBg(app.loader.resources['mountainFar'].texture)
+            mountainClose = createBg(app.loader.resources['mountainClose'].texture)
+            mountainTrees = createBg(app.loader.resources['mountainTrees'].texture)
+
+
+            app.stage.addChild(player)
+            app.stage.addChild(enemy)
+            for (let i = 0; i < 3; i++) {
+                app.stage.addChild(rocks[i])
+            }
+            app.ticker.add(gameLoop)
+        }
+
+        function createBg(texture) {
+            let tiling = new PIXI.TilingSprite(texture, 800, 600)
+            tiling.position.set(0, 0)
+            app.stage.addChild(tiling)
+
+            return tiling
+        }
+
+
+        function updateBg() {
+            mountainX = (mountainX + mountainSpeed)
+            mountainTrees.tilePosition.x = mountainX
+            mountainClose.tilePosition.x = mountainX / 2
+            mountainFar.tilePosition.x = mountainX / 4
+            mountainForegroundTrees.tilePosition.x = mountainX / 8
+            mountainBg.tilePosition.x = mountainX / 16
+        }
+
+        function updateBullets(delta) {
+            for (let i = 0; i < bullets.length; i++) {
+                bullets[i].position.x -= bullets[i].speed
+
+                if (bullets[i].x < -60) bullets[i].dead = true
+            }
+            for (let i = 0; i < bullets.length; i++) {
+                if (bullets[i].dead === true) app.stage.removeChild(bullets[i]), bullets.splice(i, 1)
+            }
+        }
+
+        function intersect(a, b) {
+            let aBox = a.getBounds()
+            let bBox = b.getBounds()
+
+            return aBox.x + aBox.width > bBox.x &&
+                aBox.x < bBox.x + bBox.width &&
+                aBox.y + aBox.height > bBox.y &&
+                aBox.y < bBox.height + bBox.y
+        }
+
+        function fireBullet(e) {
+            let bullet = createBullet()
+            bullets.push(bullet)
+        }
+
+        setFireBulletInterval = () => {
+            setInterval(function () {
+                fireBullet();
+                document.getElementById('timer').innerText = meters
+                meters += 10
+            }, 500);
+        }
+
+        function createBullet() {
+            let bullet = new PIXI.Sprite.from('images/bullet.png')
+            bullet.anchor.set(0.5)
+            bullet.x = enemy.x
+            bullet.y = enemy.y + 25
+            bullet.speed = speed + 2
+            app.stage.addChild(bullet)
+            return bullet
+        }
+
+    </script>
+</head>
+
+<body>
+    <div id="timer" style="font-size: 40px;">0</div>
+    <div id="gameDiv" style="margin: 5% 10% 0% 41%;"></div>
+</body>
+
+</html>
