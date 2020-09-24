@@ -1,3 +1,88 @@
+<<<<<<< HEAD
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=
+    , initial-scale=1.0">
+    <title>RocketShip Game</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.1.3/pixi.min.js"></script>
+    <script src="./jsFiles/bullets.js"></script>
+    <script src="./jsFiles/componentsMovement.js"></script>
+    <script src="./jsFiles/bgMovement.js"></script>
+    <script src="./jsFiles/statements.js"></script>
+    <script src="./jsFiles/loadingFunctions.js"></script>
+
+    <link href="styles.css" rel="stylesheet">
+
+    <script>
+        let app,
+            mountainBg, mountainForegroundTrees, mountainFar, mountainClose, mountainTrees,
+            mountainX = 0, mountainSpeed = 1, player, enemy, speed = 6, keys = {}, rocks = [], bullets = [], meters = 10
+        var stage = new PIXI.Container();
+
+        window.onload = function () {
+            app = new PIXI.Application({
+                width: 800,
+                height: 600,
+            });
+
+            document.querySelector("#gameDiv").appendChild(app.view);
+
+            player = new PIXI.Sprite.from("images/rocketship.png");
+            player.anchor.set(0.1);
+            player.x = 16;
+            player.y = app.view.height / 2;
+
+            enemy = new PIXI.Sprite.from("images/enemy.png");
+            enemy.anchor.set(0.1);
+            enemy.x = app.view.width + 10;
+            enemy.y = app.view.height / Math.floor(Math.random() * 6) + 1;
+
+            addRocks(app);
+            onLoadFunction(app)
+            app.loader.onComplete.add(initLevel)
+            app.loader.load()
+
+            window.addEventListener('keyup', KeyUp)
+            window.addEventListener('keydown', KeyDown)
+            setFireBulletInterval(bullets)
+        }
+
+        function gameLoop(delta) {
+            updateBg(mountainX, mountainTrees, mountainClose, mountainFar, mountainForegroundTrees, mountainBg)
+            updateBullets(bullets)
+            checkForRocksAndEnemies(rocks, enemy)
+            checkForContact(player, bullets, rocks, enemy, keys)
+        }
+
+        function initLevel() {
+            mountainBg = createBg(app.loader.resources['mountainBg'].texture)
+            mountainForegroundTrees = createBg(app.loader.resources['mountainForegroundTrees'].texture)
+            mountainFar = createBg(app.loader.resources['mountainFar'].texture)
+            mountainClose = createBg(app.loader.resources['mountainClose'].texture)
+            mountainTrees = createBg(app.loader.resources['mountainTrees'].texture)
+
+
+            app.stage.addChild(player)
+            app.stage.addChild(enemy)
+            for (let i = 0; i < 3; i++) {
+                app.stage.addChild(rocks[i])
+            }
+            app.ticker.add(gameLoop)
+        }
+
+    </script>
+</head>
+
+<body>
+    <div id="timer" style="font-size: 40px;">0</div>
+    <div id="gameDiv" style="margin: 5% 10% 0% 41%;"></div>
+</body>
+
+=======
 <!DOCTYPE html>
 <html lang="en">
 
@@ -190,4 +275,5 @@
     <div id="gameDiv" style="margin: 5% 10% 0% 41%;"></div>
 </body>
 
+>>>>>>> 8acab606c41e864bbd72c62c9755919f46276fce
 </html>
